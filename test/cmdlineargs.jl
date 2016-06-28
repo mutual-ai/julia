@@ -1,5 +1,6 @@
 # This file is a part of Julia. License is MIT: http://julialang.org/license
 
+@testset "cmdlineargs" begin
 let exename = `$(Base.julia_cmd()) --precompiled=yes`
     # --version
     let v = split(readstring(`$exename -v`), "julia version ")[end]
@@ -286,4 +287,6 @@ run(pipeline(DevNull, `$(joinpath(JULIA_HOME, Base.julia_exename())) --lisp`, De
 let exename = `$(Base.julia_cmd())`
     @test readchomp(`$exename --precompiled=yes -E "Bool(Base.JLOptions().use_precompiled)"`) == "true"
     @test readchomp(`$exename --precompiled=no -E "Bool(Base.JLOptions().use_precompiled)"`) == "false"
+end
+
 end

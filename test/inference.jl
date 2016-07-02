@@ -1,6 +1,5 @@
 # This file is a part of Julia. License is MIT: http://julialang.org/license
 
-@testset "inference" begin
 # tests for Core.Inference correctness and precision
 
 # issue 9770
@@ -263,5 +262,3 @@ typealias NInt{N} Tuple{Vararg{Int, N}}
 fNInt(x::NInt) = (x...)
 gNInt() = fNInt(x)
 @test Base.return_types(gNInt, ()) == Any[NInt]
-
-end

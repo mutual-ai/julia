@@ -1,7 +1,5 @@
 # This file is a part of Julia. License is MIT: http://julialang.org/license
 
-@testset "stacktraces" begin
-
 let
     @noinline child() = stacktrace()
     @noinline parent() = child()
@@ -96,6 +94,5 @@ for (frame, func, inlined) in zip(trace, [g,h,f], (can_inline, can_inline, false
     @test frame.file === Symbol(@__FILE__)
     @test !frame.from_c
     @test frame.inlined === inlined
-end
 end
 end

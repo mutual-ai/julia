@@ -1,6 +1,5 @@
 # This file is a part of Julia. License is MIT: http://julialang.org/license
 
-@testset "generic" begin
 import Base: *
 
 # A custom Quaternion type with minimal defined interface and methods.
@@ -283,4 +282,3 @@ end
 
 @test_throws ArgumentError Base.LinAlg.char_uplo(:Z)
 
-end

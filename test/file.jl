@@ -1,6 +1,5 @@
 # This file is a part of Julia. License is MIT: http://julialang.org/license
 
-@testset "file" begin
 #############################################
 # Create some temporary files & directories #
 #############################################
@@ -1110,4 +1109,3 @@ end
 test_13559()
 end
 @test_throws ArgumentError mkpath("fakepath",-1)
-end

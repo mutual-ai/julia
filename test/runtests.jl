@@ -61,7 +61,7 @@ cd(dirname(@__FILE__)) do
             end
         end
     end
-
+    println("Beginning node1 tests")
     # Free up memory =)
     n > 1 && rmprocs(workers(), waitfor=5.0)
     for t in node1_tests

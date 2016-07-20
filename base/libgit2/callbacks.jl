@@ -150,7 +150,17 @@ function credentials_callback(cred::Ptr{Ptr{Void}}, url_ptr::Cstring,
             ENV["SSH_KEY_PASS"]
         else
             passdef = creds[:pass, credid] # check if credentials were already used
-            passdef !== nothing && !isusedcreds ? passdef : prompt("Passphrase for $privatekey", password=true)
+            if passdef === nothing || isusedcreds
+                if is_windows()
+                    passdef = winprompt(
+                        "Your SSH Key requires a password, please enter it now:",
+                        "Passphrase required", privatekey; prompt_username = false)
+                    isnull(passdef) && return Cint(Error.EAUTH)
+                    passdef = Base.get(passdef)[2]
+                else
+                    passdef = prompt("Passphrase for $privatekey", password=true)
+                end
+            end
         end
         creds[:pass, credid] = passphrase # save credentials
 
@@ -164,17 +174,27 @@ function credentials_callback(cred::Ptr{Ptr{Void}}, url_ptr::Cstring,
 
     if isset(allowed_types, Cuint(Consts.CREDTYPE_USERPASS_PLAINTEXT))
         credid = "$schema$host"
-        username = creds[:user, credid]
-        if username === nothing || isusedcreds
-            username = prompt("Username for '$schema$host'")
-            creds[:user, credid] = username # save credentials
-        end
 
+        username = creds[:user, credid]
         userpass = creds[:pass, credid]
-        if userpass === nothing || isusedcreds
-            userpass = prompt("Password for '$schema$username@$host'", password=true)
-            creds[:pass, credid] = userpass # save credentials
+        if is_windows()
+            if username === nothing || userpass === nothing || isusedcreds
+                res = winprompt("Please enter your credentials for '$schema$host'", "Credentials required",
+                        username === nothing ? "" : username; prompt_username = true)
+                isnull(res) && return Cint(Error.EAUTH)
+                username, userpass = Base.get(res)
+            end
+        else
+            if username === nothing || isusedcreds
+                username = prompt("Username for '$schema$host'")
+            end
+
+            if userpass === nothing || isusedcreds
+                userpass = prompt("Password for '$schema$username@$host'", password=true)
+            end
         end
+        creds[:user, credid] = username # save credentials
+        creds[:pass, credid] = userpass # save credentials
 
         isempty(username) && isempty(userpass) && return Cint(Error.EAUTH)
 

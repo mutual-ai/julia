@@ -322,9 +322,12 @@ function wait_close(x::Union{LibuvStream, LibuvServer})
 end
 
 function close(stream::Union{LibuvStream, LibuvServer})
-    if isopen(stream) && stream.status != StatusClosing
-        ccall(:jl_close_uv,Void, (Ptr{Void},), stream.handle)
-        stream.status = StatusClosing
+    if isopen(stream)
+        if stream.status != StatusClosing
+            ccall(:jl_close_uv, Void, (Ptr{Void},), stream.handle)
+            stream.status = StatusClosing
+        end
+        stream_wait(stream, stream.closenotify)
     end
     nothing
 end
@@ -472,8 +475,10 @@ function uv_readcb(handle::Ptr{Void}, nread::Cssize_t, buf::Ptr{Void})
                 stream.status = StatusEOF # libuv called stop_reading already
                 notify(stream.readnotify)
                 notify(stream.closenotify)
-            else
-                close(stream)
+            elseif stream.status != StatusClosing
+                # begin shutdown of the stream
+                ccall(:jl_close_uv, Void, (Ptr{Void},), stream.handle)
+                stream.status = StatusClosing
             end
         else
             # This is a fatal connection error. Shutdown requests as per the usual

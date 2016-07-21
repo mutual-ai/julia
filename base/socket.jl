@@ -371,11 +371,14 @@ end
 show(io::IO, stream::UDPSocket) = print(io, typeof(stream), "(", uv_status_string(stream), ")")
 
 function uvfinalize(uv::Union{TTY,PipeEndpoint,PipeServer,TCPServer,TCPSocket,UDPSocket})
-    if (uv.status != StatusUninit && uv.status != StatusInit)
-        close(uv)
+    if uv.handle != C_NULL
+        disassociate_julia_struct(uv.handle)
+        if (uv.status != StatusUninit && uv.status != StatusInit)
+            close(uv)
+            uv.handle = C_NULL
+            sock.status = StatusClosed
+        end
     end
-    disassociate_julia_struct(uv)
-    uv.handle = C_NULL
 end
 
 function _uv_hook_close(sock::UDPSocket)
